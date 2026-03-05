@@ -56,4 +56,19 @@ def init_database():
                         role TEXT NOT NULL
                         );''')
         
+    if query_count('SELECT COUNT(*) from movies') == 0:
+        print('Inserting movies')
+        insert_query('''INSERT INTO movies(title,director,release_year) VALUES
+                            ('Titanic','James Cameron','1997'),
+                            ('Troy','Wolfgang Petersen','2004'),
+                            ('Gladiator','Ridley Scott','2000')''')
+        
+
+    if query_count('SELECT COUNT(*) from users') == 0:
+        print('Inserting users')
+        insert_query('''INSERT INTO users(username,password,role) VALUES
+                            ('Pesho','1234','user'),
+                            ('Gosho','1234','admin'),
+                            ('Tosho','1234','user')''')
+        
         
