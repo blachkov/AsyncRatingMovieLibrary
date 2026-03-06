@@ -1,0 +1,3 @@
+Projects uses OMDB api for generating the rating for the films.
+Authorization is done in the backend depending on the user role and the authentication is done with cookies.
+Asynchronous enrichment is implemented to wait for the rating coming from the OMDB api, while the film is directly being created in the DB.
