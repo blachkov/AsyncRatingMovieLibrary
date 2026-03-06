@@ -22,7 +22,13 @@ def from_token(token: str) -> User | None:
     
 def find_by_username(username: str) -> User | None:
     data = read_query(
-        'SELECT id, first_name, last_name, email, username, password, role FROM users WHERE username = ?',
+        'SELECT id, username, password, role FROM users WHERE username = ?',
         (username,))
 
     return next((User.from_query_result(*row) for row in data), None)
+
+def is_admin(user: User):
+    if user.role=="admin":
+        return True
+    else:
+        return False

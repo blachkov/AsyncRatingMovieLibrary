@@ -5,3 +5,4 @@ from data.models import User
 from services import users_service
 
 users_router = APIRouter(prefix='/users')
+

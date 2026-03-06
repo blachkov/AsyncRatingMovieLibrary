@@ -4,6 +4,7 @@ from fastapi import Response
 class BadRequest(Response):
     def __init__(self, content=''):
         super().__init__(status_code=400, content=content)
+        self.content = content
 
 
 class NotFound(Response):
