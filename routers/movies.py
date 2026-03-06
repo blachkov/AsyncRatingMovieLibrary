@@ -46,3 +46,14 @@ def delete_movie(id: int, x_token: str = Header()):
         return BadRequest(f'No such movie')
     movies_service.delete(movie)
     return f"Movie {movie.title} has been deleted!"
+
+@movies_router.put('/{id}')
+def update_movie(id: int, new_movie: Movie, x_token: str = Header()):
+    user = get_user_or_raise_401(x_token)
+    movie = movies_service.get_by_id(id)
+    if not users_service.is_admin(user):
+        return Unauthorized('You cannot edit movies')
+    if not movie:
+        return BadRequest(f'No such movie')
+    result = movies_service.update(movie,new_movie)
+    return result

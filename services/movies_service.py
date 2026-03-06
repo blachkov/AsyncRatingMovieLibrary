@@ -68,6 +68,22 @@ def create_async(movie_rating,movie:Movie):
 def delete(movie:Movie):
     update_query('DELETE FROM movies WHERE id = ?', (movie.id,))
 
+def update(old:Movie,new:Movie):
+    merged = Movie(
+        id=old.id,
+        title=new.title or old.title,
+        director=new.director or old.director,
+        release_year=new.release_year or old.release_year,
+        rating=new.rating or old.rating)
+    update_query(
+        '''UPDATE movies SET
+           title = ?, director = ?, release_year = ?
+           WHERE id = ?
+        ''',
+        (merged.title, merged.director, merged.release_year ,merged.id))
+
+    return Movie.from_query_result(merged.id, merged.title, merged.director, merged.release_year, merged.rating)
+
 async def fetch_and_update_metascore(movie: Movie, dummy: Movie):
     async with httpx.AsyncClient() as client:
         response = await client.get(f'{_API}{movie.title}{_KEY}')
