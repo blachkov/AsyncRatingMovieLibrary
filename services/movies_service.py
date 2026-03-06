@@ -24,6 +24,14 @@ def all(title: str = None,
     rows = read_query(sql, tuple(params))
     return [Movie.from_query_result(*row) for row in rows]
 
+def get_by_id(id: int) -> Movie:
+    data = read_query(
+        '''SELECT id, title, director, release_year, rating
+            FROM movies
+            WHERE id = ?''', (id,))
+
+    return next((Movie.from_query_result(*row) for row in data), None)
+
 def movie_exists(movie_title: str):
     data = read_query(
             '''SELECT title
@@ -56,6 +64,9 @@ def create_async(movie_rating,movie:Movie):
         ''',
         (movie_rating, movie.id))
     return Movie.from_query_result(merged.id, merged.director, merged.title, merged.release_year, merged.rating)
+
+def delete(movie:Movie):
+    update_query('DELETE FROM movies WHERE id = ?', (movie.id,))
 
 async def fetch_and_update_metascore(movie: Movie, dummy: Movie):
     async with httpx.AsyncClient() as client:

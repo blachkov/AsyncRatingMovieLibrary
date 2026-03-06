@@ -18,6 +18,13 @@ def get_movies(
     result = movies_service.all(name,sort)
     return result
 
+@movies_router.get('/{id}')
+def get_movie_by_id(id: int):
+    result = movies_service.get_by_id(id)
+    if not result:
+        return NotFound()
+    return result
+
 @movies_router.post('/')
 async def create_movie(movie: Movie, x_token: str = Header()):
     user = get_user_or_raise_401(x_token)
@@ -28,3 +35,14 @@ async def create_movie(movie: Movie, x_token: str = Header()):
     dummy = movies_service.create(movie)  # Returns immediately with rating=0
     asyncio.create_task(movies_service.fetch_and_update_metascore(movie, dummy))  # Fire and forget
     return dummy
+
+@movies_router.delete('/{id}')
+def delete_movie(id: int, x_token: str = Header()):
+    user = get_user_or_raise_401(x_token)
+    movie = movies_service.get_by_id(id)
+    if not users_service.is_admin(user):
+        return Unauthorized('You cannot delete movies')
+    if not movie:
+        return BadRequest(f'No such movie')
+    movies_service.delete(movie)
+    return f"Movie {movie.title} has been deleted!"
