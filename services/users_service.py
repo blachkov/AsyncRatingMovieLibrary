@@ -1,24 +1,38 @@
 from sqlite3 import IntegrityError
+from datetime import datetime, timedelta, timezone
+from jwt import encode, decode, InvalidTokenError
 from common.responses import BadRequest
 from data.database import insert_query, read_query, update_query
 from data.models import User
 
-_SEPARATOR = ';'
+_SECRET_KEY = 'your-secret-key-change-this-in-production'
+_ALGORITHM = 'HS256'
+_TOKEN_EXPIRATION_HOURS = 24
 
 def create_token(user: User) -> str:
-    # This can be replaced with JWT in future
-    return f'{user.id}{_SEPARATOR}{user.username}'
+    payload = {
+        'user_id': user.id,
+        'username': user.username,
+        'exp': datetime.now(timezone.utc) + timedelta(hours=_TOKEN_EXPIRATION_HOURS)
+    }
+    return encode(payload, _SECRET_KEY, algorithm=_ALGORITHM)
 
 def is_authenticated(token: str) -> bool:
-    return any(read_query(
-        'SELECT 1 FROM users where id = ? and username = ?',
-        token.split(_SEPARATOR)))
-    # note: this token is not particulary secure, use JWT for real-world user
+    try:
+        decode(token, _SECRET_KEY, algorithms=[_ALGORITHM])
+        return True
+    except InvalidTokenError:
+        return False
 
 def from_token(token: str) -> User | None:
-    if token:
-        _, username = token.split(_SEPARATOR)
+    if not token:
+        return None
+    try:
+        payload = decode(token, _SECRET_KEY, algorithms=[_ALGORITHM])
+        username = payload.get('username')
         return find_by_username(username)
+    except InvalidTokenError:
+        return None
     
 def find_by_username(username: str) -> User | None:
     data = read_query(

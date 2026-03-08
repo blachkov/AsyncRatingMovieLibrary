@@ -2,6 +2,10 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field, StringConstraints
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
 class User(BaseModel):
     id: int | None=None
     username: str

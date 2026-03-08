@@ -4,6 +4,7 @@ from unittest.mock import patch, AsyncMock, MagicMock
 from data.models import Movie, User
 from routers.movies import create_movie
 from services.movies_service import fetch_and_update_metascore
+from services.users_service import create_token
 
 
 class TestCreateMovieAsync(unittest.IsolatedAsyncioTestCase):
@@ -24,6 +25,9 @@ class TestCreateMovieAsync(unittest.IsolatedAsyncioTestCase):
             password='1234',
             role='admin'
         )
+        
+        # Generate JWT token for the user
+        jwt_token = create_token(user_input)
 
         # Mock the service functions
         with patch('services.movies_service.movie_exists') as mock_exists, \
@@ -36,7 +40,7 @@ class TestCreateMovieAsync(unittest.IsolatedAsyncioTestCase):
             mock_create.return_value = dummy_movie
 
             # Call the endpoint
-            result = await create_movie(movie_input,'2;Gosho')
+            result = await create_movie(movie_input, jwt_token)
 
             # Verify that the function returns immediately
             self.assertEqual(result.id, 1)
@@ -100,11 +104,14 @@ class TestCreateMovieAsync(unittest.IsolatedAsyncioTestCase):
             password='1234',
             role='admin'
         )
+        
+        # Generate JWT token for the user
+        jwt_token = create_token(user_input)
 
         with patch('services.movies_service.movie_exists') as mock_exists:
             mock_exists.return_value = True
 
-            result = await create_movie(movie_input,'2;Gosho')
+            result = await create_movie(movie_input, jwt_token)
 
             # Should return BadRequest response
             self.assertIn('already exists', result.content)
@@ -124,6 +131,9 @@ class TestCreateMovieAsync(unittest.IsolatedAsyncioTestCase):
             password='1234',
             role='admin'
         )
+        
+        # Generate JWT token for the user
+        jwt_token = create_token(user_input)
 
         dummy_movie = Movie(id=3, title="Test Movie", director="Test Director", release_year=2020, rating=0)
 
@@ -132,7 +142,7 @@ class TestCreateMovieAsync(unittest.IsolatedAsyncioTestCase):
              patch('routers.movies.asyncio.create_task'):
 
             # Call should still succeed regardless of background task
-            result = await create_movie(movie_input,'2;Gosho')
+            result = await create_movie(movie_input, jwt_token)
 
             self.assertEqual(result.id, 3)
             self.assertEqual(result.rating, 0)
