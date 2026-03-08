@@ -30,11 +30,13 @@ class TestCreateMovieAsync(unittest.IsolatedAsyncioTestCase):
         jwt_token = create_token(user_input)
 
         # Mock the service functions
-        with patch('services.movies_service.movie_exists') as mock_exists, \
+        with patch('routers.movies.get_user_or_raise_401') as mock_get_user, \
+             patch('services.movies_service.movie_exists') as mock_exists, \
              patch('services.movies_service.create') as mock_create, \
              patch('routers.movies.asyncio.create_task') as mock_create_task:
 
             # Setup mocks
+            mock_get_user.return_value = user_input
             mock_exists.return_value = False
             dummy_movie = Movie(id=1, title="The Matrix", director="The Wachowskis", release_year=1999, rating=0)
             mock_create.return_value = dummy_movie
@@ -108,7 +110,9 @@ class TestCreateMovieAsync(unittest.IsolatedAsyncioTestCase):
         # Generate JWT token for the user
         jwt_token = create_token(user_input)
 
-        with patch('services.movies_service.movie_exists') as mock_exists:
+        with patch('routers.movies.get_user_or_raise_401') as mock_get_user, \
+             patch('services.movies_service.movie_exists') as mock_exists:
+            mock_get_user.return_value = user_input
             mock_exists.return_value = True
 
             result = await create_movie(movie_input, jwt_token)
@@ -137,10 +141,12 @@ class TestCreateMovieAsync(unittest.IsolatedAsyncioTestCase):
 
         dummy_movie = Movie(id=3, title="Test Movie", director="Test Director", release_year=2020, rating=0)
 
-        with patch('services.movies_service.movie_exists', return_value=False), \
+        with patch('routers.movies.get_user_or_raise_401') as mock_get_user, \
+             patch('services.movies_service.movie_exists', return_value=False), \
              patch('services.movies_service.create', return_value=dummy_movie), \
              patch('routers.movies.asyncio.create_task'):
 
+            mock_get_user.return_value = user_input
             # Call should still succeed regardless of background task
             result = await create_movie(movie_input, jwt_token)
 
